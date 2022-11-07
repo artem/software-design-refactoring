@@ -64,11 +64,11 @@ public class ServletTest {
     @Test
     public void testGetProducts() throws IOException {
         getProductsTester("""
-                Eggs	0</br>
-                Meat	42</br>
-                Milk	84</br>
-                Molniya McQueen	126</br>
-                Seafood	168</br>
+                Eggs\t0</br>
+                Meat\t42</br>
+                Milk\t84</br>
+                Molniya McQueen\t126</br>
+                Seafood\t168</br>
                 """);
     }
 
@@ -76,7 +76,7 @@ public class ServletTest {
     public void testQueryMax() throws IOException {
         queryTester("max", """
                 <h1>Product with max price: </h1>
-                Seafood	168</br>
+                Seafood\t168</br>
                 """);
     }
 
@@ -104,13 +104,104 @@ public class ServletTest {
                 """);
     }
 
+    @Test
+    public void addProductsTest() throws IOException {
+        addProductTester("Among Us", 666);
+        getProductsTester("""
+                Eggs\t0</br>
+                Meat\t42</br>
+                Milk\t84</br>
+                Molniya McQueen\t126</br>
+                Seafood\t168</br>
+                Among Us\t666</br>
+                """);
+        addProductTester("Roblox", 34);
+        getProductsTester("""
+                Eggs\t0</br>
+                Meat\t42</br>
+                Milk\t84</br>
+                Molniya McQueen\t126</br>
+                Seafood\t168</br>
+                Among Us\t666</br>
+                Roblox\t34</br>
+                """);
+    }
+
+    @Test
+    public void allServletsTest() throws IOException {
+        getProductsTester("""
+                Eggs\t0</br>
+                Meat\t42</br>
+                Milk\t84</br>
+                Molniya McQueen\t126</br>
+                Seafood\t168</br>
+                """);
+        queryTester("sum", """
+                Summary price:\s
+                420
+                """);
+        queryTester("count", """
+                Number of products:\s
+                5
+                """);
+        queryTester("max", """
+                <h1>Product with max price: </h1>
+                Seafood\t168</br>
+                """);
+        // -----------------
+        addProductTester("Roblox", 34);
+        getProductsTester("""
+                Eggs\t0</br>
+                Meat\t42</br>
+                Milk\t84</br>
+                Molniya McQueen\t126</br>
+                Seafood\t168</br>
+                Roblox\t34</br>
+                """);
+        queryTester("sum", """
+                Summary price:\s
+                454
+                """);
+        queryTester("count", """
+                Number of products:\s
+                6
+                """);
+        queryTester("max", """
+                <h1>Product with max price: </h1>
+                Seafood\t168</br>
+                """);
+        // -----------------
+        addProductTester("Among Us", 666);
+        getProductsTester("""
+                Eggs\t0</br>
+                Meat\t42</br>
+                Milk\t84</br>
+                Molniya McQueen\t126</br>
+                Seafood\t168</br>
+                Roblox\t34</br>
+                Among Us\t666</br>
+                """);
+        queryTester("sum", """
+                Summary price:\s
+                1120
+                """);
+        queryTester("count", """
+                Number of products:\s
+                7
+                """);
+        queryTester("max", """
+                <h1>Product with max price: </h1>
+                Among Us\t666</br>
+                """);
+    }
+
     private void assertContains(final String expected, final String actual) {
         if (!actual.contains(expected)) {
             AssertionFailureBuilder.assertionFailure().expected(expected).actual(actual).buildAndThrow();
         }
     }
 
-    void queryTester(String query, String responseString) throws IOException {
+    private void queryTester(String query, String responseString) throws IOException {
         final HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
         final StringWriter stringWriter = new StringWriter();
 
@@ -132,6 +223,20 @@ public class ServletTest {
             final HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
             getProductsServlet.doGet(request, response);
             assertContains(responseString, stringWriter.toString());
+        }
+    }
+
+    private void addProductTester(String name, Integer price) throws IOException {
+        final HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
+        final StringWriter stringWriter = new StringWriter();
+
+        try (final PrintWriter printWriter = new PrintWriter(stringWriter)) {
+            when(response.getWriter()).thenReturn(printWriter);
+            final HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+            when(request.getParameter("name")).thenReturn(name);
+            when(request.getParameter("price")).thenReturn(price.toString());
+            addProductServlet.doGet(request, response);
+            assertContains("OK", stringWriter.toString());
         }
     }
 }
