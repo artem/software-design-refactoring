@@ -34,10 +34,9 @@ public class ServletTest {
                          "(ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL," +
                          " NAME           TEXT    NOT NULL, " +
                          " PRICE          INT     NOT NULL)";
-            final Statement stmt = c.createStatement();
-
-            stmt.executeUpdate(sql);
-            stmt.close();
+            try (Statement stmt = c.createStatement()) {
+                stmt.executeUpdate(sql);
+            }
 
             final List<String> map = Stream.of("Seafood", "Meat", "Milk", "Eggs", "Molniya McQueen").sorted().toList();
             int price = 0;
