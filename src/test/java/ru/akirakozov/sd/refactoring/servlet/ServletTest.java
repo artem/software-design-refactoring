@@ -8,6 +8,7 @@ import org.mockito.Mockito;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import ru.akirakozov.sd.refactoring.dao.Database;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -22,22 +23,15 @@ import java.util.stream.Stream;
 import static org.mockito.Mockito.when;
 
 public class ServletTest {
-
-    final AddProductServlet addProductServlet = new AddProductServlet();
-    final GetProductsServlet getProductsServlet = new GetProductsServlet();
-    final QueryServlet queryServlet = new QueryServlet();
+    private final Database db = new Database("jdbc:sqlite:test.db");
+    private final AddProductServlet addProductServlet = new AddProductServlet(db);
+    private final GetProductsServlet getProductsServlet = new GetProductsServlet(db);
+    private final QueryServlet queryServlet = new QueryServlet(db);
 
     @BeforeEach
     public void setUp() throws SQLException {
+        db.init();
         try (final Connection c = DriverManager.getConnection("jdbc:sqlite:test.db")) {
-            String sql = "CREATE TABLE IF NOT EXISTS PRODUCT" +
-                         "(ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL," +
-                         " NAME           TEXT    NOT NULL, " +
-                         " PRICE          INT     NOT NULL)";
-            try (Statement stmt = c.createStatement()) {
-                stmt.executeUpdate(sql);
-            }
-
             final List<String> map = Stream.of("Seafood", "Meat", "Milk", "Eggs", "Molniya McQueen").sorted().toList();
             int price = 0;
             for (final String name : map) {
@@ -53,11 +47,7 @@ public class ServletTest {
 
     @AfterEach
     public void tearDown() throws SQLException {
-        try (final Connection c = DriverManager.getConnection("jdbc:sqlite:test.db")) {
-            final Statement stmt = c.createStatement();
-            stmt.executeUpdate("DROP TABLE PRODUCT");
-            stmt.close();
-        }
+        db.drop();
     }
 
     @Test

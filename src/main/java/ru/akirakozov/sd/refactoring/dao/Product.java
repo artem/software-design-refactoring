@@ -2,9 +2,9 @@ package ru.akirakozov.sd.refactoring.dao;
 
 public final class Product {
     private String name;
-    private int price;
+    private long price;
 
-    public Product(final String name, final int price) {
+    public Product(final String name, final long price) {
         this.name = name;
         this.price = price;
     }
@@ -17,7 +17,7 @@ public final class Product {
         this.name = name;
     }
 
-    public int getPrice() {
+    public long getPrice() {
         return price;
     }
 

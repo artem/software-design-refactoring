@@ -3,16 +3,21 @@ package ru.akirakozov.sd.refactoring.servlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import ru.akirakozov.sd.refactoring.dao.Database;
+import ru.akirakozov.sd.refactoring.dao.Product;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.Statement;
 
 /**
  * @author akirakozov
  */
 public class AddProductServlet extends HttpServlet {
+
+    private final Database db;
+
+    public AddProductServlet(Database repo) {
+        this.db = repo;
+    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -20,12 +25,7 @@ public class AddProductServlet extends HttpServlet {
         long price = Long.parseLong(request.getParameter("price"));
 
         try {
-            try (Connection c = DriverManager.getConnection("jdbc:sqlite:test.db")) {
-                String sql = "INSERT INTO PRODUCT " + "(NAME, PRICE) VALUES (\"" + name + "\"," + price + ")";
-                try (Statement stmt = c.createStatement()) {
-                    stmt.executeUpdate(sql);
-                }
-            }
+            db.insert(new Product(name, price));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
